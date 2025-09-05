@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  emulator:
+    image: budtmo/docker-android-x86-11.0  # prebuilt Android emulator image
+    privileged: true
+    ports:
+      - "6080:6080"   # VNC
+      - "5554:5554"   # Emulator console
+      - "5555:5555"   # ADB
+    environment:
+      - DEVICE=Samsung Galaxy S10
+      - EMULATOR_ARGS=-no-window -gpu swiftshader_indirect
+      - APPIUM=false
+
+  appium:
+    image: appium/appium:2.5.4
+    depends_on:
+      - emulator
+    network_mode: "service:emulator"   # shares emulator network
+    command: ["appium", "--base-path", "/wd/hub", "-p", "4723"]
+
+  tests:
+    build: .
+    depends_on:
+      - emulator
+      - appium
+    volumes:
+      - ./allure-results:/app/allure-results
+      - ./target/surefire-reports:/app/target/surefire-reports
+    environment:
+      - APPIUM_SERVER=${APPIUM_SERVER}
+      - DEVICE_NAME=emulator-5554
