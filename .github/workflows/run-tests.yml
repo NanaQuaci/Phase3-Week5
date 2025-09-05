@@ -1,20 +1,16 @@
 name: Run Android Appium Tests with Allure
-
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 env:
   APP_PATH: ./src/test/resources/apps/Android.SauceLabs.Mobile.Sample.app.2.7.1.apk
   DEVICE_NAME: pixel_6a
-
 jobs:
   test:
     runs-on: ubuntu-latest
     continue-on-error: true
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,6 +25,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
+
 
       - name: Install Appium and Allure
         run: |
@@ -46,9 +43,12 @@ jobs:
           script: |
             echo ">>> Emulator ready, starting Appium..."
             wait-for-boot
+            echo ">>> Waiting for ADB connection..."
+            adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed | tr -d '\r') ]]; do sleep 1; done; input keyevent 82'
+            echo ">>> ADB connection established, device fully booted"
             appium -p 4723 --base-path /wd/hub &
             sleep 15
-            echo ">>> Running Maven tests..."
+            echo ">>> Running tests..."
             mkdir -p allure-results target/surefire-reports
             chmod 777 allure-results target/surefire-reports
             mvn clean test
@@ -71,11 +71,9 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: always()
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Download Allure results
         uses: actions/download-artifact@v4
         with:
@@ -92,19 +90,16 @@ jobs:
       - name: Generate Allure report
         run: |
           allure generate allure-results --clean -o allure-report
-
       - name: Deploy Allure report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: allure-report
           publish_branch: gh-pages
-
   notify-slack:
     needs: [ test, deploy-allure-report ]
     runs-on: ubuntu-latest
     if: always()
-
     steps:
       - name: Send Slack notification
         run: |
@@ -114,5 +109,5 @@ jobs:
             EMOJI="✅"
           fi
           curl -X POST -H 'Content-type: application/json' --data "{
-            \"text\": \"${EMOJI} Android Appium CI/CD finished with status: *$STATUS*\nRepo: $GITHUB_REPOSITORY\nCommit: <https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA|$GITHUB_SHA>\nAllure Report: https://$GITHUB_REPOSITORY.github.io/allure-report\" 
+            \"text\": \"${EMOJI} Android Appium CI/CD finished with status: *$STATUS*\nRepo: $GITHUB_REPOSITORY\nCommit: <https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA|$GITHUB_SHA>\nAllure Report: https://$GITHUB_REPOSITORY_OWNER.github.io/${{ github.event.repository.name }}\"
           }" ${{ secrets.SLACK_WEBHOOK_URL }}
