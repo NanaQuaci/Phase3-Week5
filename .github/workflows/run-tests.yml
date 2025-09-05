@@ -8,9 +8,8 @@ on:
 
 env:
   IMAGE_NAME: appium_swaglabs_automation
-  APPIUM_SERVER: http://appium:4723/wd/hub
-  DEVICE_NAME: emulator-5554
   APP_PATH: ./src/test/resources/apps/Android.SauceLabs.Mobile.Sample.app.2.7.1.apk
+  DEVICE_NAME: pixel_6a
 
 jobs:
   test:
@@ -27,34 +26,23 @@ jobs:
       - name: Build Docker image
         run: docker build -t ${{ env.IMAGE_NAME }} .
 
-      - name: Start emulator, install APK, and run tests
-        run: |
-          mkdir -p allure-results target/surefire-reports
-          chmod 777 allure-results target/surefire-reports
-
-          echo ">>> Starting emulator and Appium..."
-          docker compose up -d emulator appium
-
-          echo ">>> Waiting for emulator device..."
-          until adb devices | grep emulator-5554; do
-            echo "Waiting for emulator device..."
-            sleep 5
-          done
-
-          echo ">>> Waiting for emulator to fully boot..."
-          boot_completed=""
-          while [ "$boot_completed" != "1" ]; do
-            boot_completed=$(adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
-            echo "Emulator boot status: $boot_completed"
-            sleep 5
-          done
-          echo "Emulator fully booted!"
-
-          echo ">>> Installing APK on emulator..."
-          adb -s emulator-5554 install -r $APP_PATH
-
-          echo ">>> Running tests..."
-          docker compose up --abort-on-container-exit tests
+      - name: Start Android Emulator
+        uses: reactivecircus/android-emulator-runner@v3
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: true
+          emulator-options: -no-window -gpu swiftshader_indirect
+          script: |
+            echo ">>> Emulator ready, running tests..."
+            mkdir -p allure-results target/surefire-reports
+            chmod 777 allure-results target/surefire-reports
+            docker run --rm \
+              -e APPIUM_SERVER=http://127.0.0.1:4723/wd/hub \
+              -e DEVICE_NAME=${{ env.DEVICE_NAME }} \
+              -e APP_PATH=${{ env.APP_PATH }} \
+              ${{ env.IMAGE_NAME }}
 
       - name: Upload Allure results as artifact
         if: always()

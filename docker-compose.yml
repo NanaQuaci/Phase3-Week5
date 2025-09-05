@@ -1,49 +1,18 @@
-#docker-compose.yml
-version: '3.8'
-
 services:
-  emulator:
-    image: dperson/android-emulator:11.0
-    privileged: true
-    ports:
-      - "6080:6080"
-      - "5554:5554"
-      - "5555:5555"
-    environment:
-      - DEVICE=${DEVICE_NAME:-Samsung Galaxy S10}
-      - EMULATOR_ARGS=-no-window -gpu swiftshader_indirect
-      - APPIUM=false
-
   appium:
     image: appium/appium:2.5.4
-    depends_on:
-      - emulator
-    network_mode: "service:emulator"
+    ports:
+      - "4723:4723"
     command: ["appium", "--base-path", "/wd/hub", "-p", "4723"]
 
   tests:
     build: .
     depends_on:
-      - emulator
       - appium
     volumes:
       - ./allure-results:/app/allure-results
       - ./target/surefire-reports:/app/target/surefire-reports
     environment:
-      - APPIUM_SERVER=${APPIUM_SERVER:-http://appium:4723/wd/hub}
+      - APPIUM_SERVER=${APPIUM_SERVER:-http://127.0.0.1:4723/wd/hub}
       - DEVICE_NAME=${DEVICE_NAME:-emulator-5554}
       - APP_PATH=${APP_PATH}
-    entrypoint: >
-      sh -c "
-      echo 'Waiting for emulator...';
-      until adb devices | grep emulator-5554; do sleep 5; done;
-      booted=0;
-      until [ \"$booted\" = \"1\" ]; do
-        booted=$(adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r');
-        sleep 5;
-      done;
-      echo 'Emulator ready! Running tests...';
-      mvn clean test;
-      mkdir -p allure-report;
-      allure generate allure-results --clean -o allure-report
-      "
