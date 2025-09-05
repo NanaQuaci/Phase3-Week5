@@ -6,11 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  APPIUM_SERVER: http://appium:4723/wd/hub
-  DEVICE_NAME: emulator-5554
-  APP_PATH: ./src/test/resources/apps/Android.SauceLabs.Mobile.Sample.app.2.7.1.apk
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -18,9 +13,9 @@ jobs:
 
     env:
       IMAGE_NAME: appium_swaglabs_automation
-      APPIUM_SERVER: ${{ env.APPIUM_SERVER }}
-      DEVICE_NAME: ${{ env.DEVICE_NAME }}
-      APP_PATH: ${{ env.APP_PATH }}
+      APPIUM_SERVER: http://appium:4723/wd/hub
+      DEVICE_NAME: emulator-5554
+      APP_PATH: ./src/test/resources/apps/Android.SauceLabs.Mobile.Sample.app.2.7.1.apk
 
     steps:
       - name: Checkout repository
@@ -37,10 +32,6 @@ jobs:
           mkdir -p allure-results target/surefire-reports
           chmod 777 allure-results target/surefire-reports
           docker compose up --abort-on-container-exit --build
-        env:
-          APPIUM_SERVER: ${{ env.APPIUM_SERVER }}
-          DEVICE_NAME: ${{ env.DEVICE_NAME }}
-          APP_PATH: ${{ env.APP_PATH }}
 
       - name: Upload Allure results as artifact
         if: always()
@@ -103,5 +94,5 @@ jobs:
             EMOJI="✅"
           fi
           curl -X POST -H 'Content-type: application/json' --data "{
-            \"text\": \"${EMOJI} Android Appium CI/CD finished with status: *$STATUS*\nRepo: $GITHUB_REPOSITORY\nCommit: <https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA|$GITHUB_SHA>\nAllure Report: https://$GITHUB_REPOSITORY.github.io/allure-report\"\n
+            \"text\": \"${EMOJI} Android Appium CI/CD finished with status: *$STATUS*\nRepo: $GITHUB_REPOSITORY\nCommit: <https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA|$GITHUB_SHA>\nAllure Report: https://$GITHUB_REPOSITORY.github.io/allure-report\"
           }" ${{ secrets.SLACK_WEBHOOK_URL }}
