@@ -7,7 +7,6 @@ on:
     branches: [ main ]
 
 env:
-  IMAGE_NAME: appium_swaglabs_automation
   APP_PATH: ./src/test/resources/apps/Android.SauceLabs.Mobile.Sample.app.2.7.1.apk
   DEVICE_NAME: pixel_6a
 
@@ -20,14 +19,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 21
+          distribution: temurin
 
-      - name: Build Docker image
-        run: docker build -t ${{ env.IMAGE_NAME }} .
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-      - name: Start Android Emulator
-        uses: reactivecircus/android-emulator-runner@v3
+      - name: Install Appium and Allure
+        run: |
+          npm install -g appium@2.0.0 appium-doctor allure-commandline --save-dev
+          appium driver install uiautomator2
+
+      - name: Start Android Emulator and Run Tests
+        uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
           target: google_apis
@@ -35,14 +44,13 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-window -gpu swiftshader_indirect
           script: |
-            echo ">>> Emulator ready, running tests..."
+            echo ">>> Emulator ready, starting Appium server..."
+            appium -p 4723 --base-path /wd/hub &
+            sleep 15
+            echo ">>> Running Maven tests..."
             mkdir -p allure-results target/surefire-reports
             chmod 777 allure-results target/surefire-reports
-            docker run --rm \
-              -e APPIUM_SERVER=http://127.0.0.1:4723/wd/hub \
-              -e DEVICE_NAME=${{ env.DEVICE_NAME }} \
-              -e APP_PATH=${{ env.APP_PATH }} \
-              ${{ env.IMAGE_NAME }}
+            mvn clean test
 
       - name: Upload Allure results as artifact
         if: always()
