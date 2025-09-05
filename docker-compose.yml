@@ -3,7 +3,7 @@ version: '3.8'
 
 services:
   emulator:
-    image: budtmo/docker-android-x86-11.0
+    image: dperson/android-emulator:11.0
     privileged: true
     ports:
       - "6080:6080"
