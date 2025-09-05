@@ -1,3 +1,4 @@
+#docker-compose.yml
 version: '3.8'
 
 services:
@@ -32,3 +33,17 @@ services:
       - APPIUM_SERVER=${APPIUM_SERVER:-http://appium:4723/wd/hub}
       - DEVICE_NAME=${DEVICE_NAME:-emulator-5554}
       - APP_PATH=${APP_PATH}
+    entrypoint: >
+      sh -c "
+      echo 'Waiting for emulator...';
+      until adb devices | grep emulator-5554; do sleep 5; done;
+      booted=0;
+      until [ \"$booted\" = \"1\" ]; do
+        booted=$(adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r');
+        sleep 5;
+      done;
+      echo 'Emulator ready! Running tests...';
+      mvn clean test;
+      mkdir -p allure-report;
+      allure generate allure-results --clean -o allure-report
+      "

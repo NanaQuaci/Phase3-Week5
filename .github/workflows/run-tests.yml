@@ -6,16 +6,16 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  IMAGE_NAME: appium_swaglabs_automation
+  APPIUM_SERVER: http://appium:4723/wd/hub
+  DEVICE_NAME: emulator-5554
+  APP_PATH: ./src/test/resources/apps/Android.SauceLabs.Mobile.Sample.app.2.7.1.apk
+
 jobs:
   test:
     runs-on: ubuntu-latest
     continue-on-error: true
-
-    env:
-      IMAGE_NAME: appium_swaglabs_automation
-      APPIUM_SERVER: http://appium:4723/wd/hub
-      DEVICE_NAME: emulator-5554
-      APP_PATH: ./src/test/resources/apps/Android.SauceLabs.Mobile.Sample.app.2.7.1.apk
 
     steps:
       - name: Checkout repository
@@ -25,13 +25,36 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Build Docker image
-        run: docker build -t $IMAGE_NAME .
+        run: docker build -t ${{ env.IMAGE_NAME }} .
 
-      - name: Start emulator, Appium, and run tests
+      - name: Start emulator, install APK, and run tests
         run: |
           mkdir -p allure-results target/surefire-reports
           chmod 777 allure-results target/surefire-reports
-          docker compose up --abort-on-container-exit --build
+
+          echo ">>> Starting emulator and Appium..."
+          docker compose up -d emulator appium
+
+          echo ">>> Waiting for emulator device..."
+          until adb devices | grep emulator-5554; do
+            echo "Waiting for emulator device..."
+            sleep 5
+          done
+
+          echo ">>> Waiting for emulator to fully boot..."
+          boot_completed=""
+          while [ "$boot_completed" != "1" ]; do
+            boot_completed=$(adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            echo "Emulator boot status: $boot_completed"
+            sleep 5
+          done
+          echo "Emulator fully booted!"
+
+          echo ">>> Installing APK on emulator..."
+          adb -s emulator-5554 install -r $APP_PATH
+
+          echo ">>> Running tests..."
+          docker compose up --abort-on-container-exit tests
 
       - name: Upload Allure results as artifact
         if: always()
@@ -94,5 +117,5 @@ jobs:
             EMOJI="✅"
           fi
           curl -X POST -H 'Content-type: application/json' --data "{
-            \"text\": \"${EMOJI} Android Appium CI/CD finished with status: *$STATUS*\nRepo: $GITHUB_REPOSITORY\nCommit: <https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA|$GITHUB_SHA>\nAllure Report: https://$GITHUB_REPOSITORY.github.io/allure-report\"
+            \"text\": \"${EMOJI} Android Appium CI/CD finished with status: *$STATUS*\nRepo: $GITHUB_REPOSITORY\nCommit: <https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA|$GITHUB_SHA>\nAllure Report: https://$GITHUB_REPOSITORY.github.io/allure-report\" 
           }" ${{ secrets.SLACK_WEBHOOK_URL }}
