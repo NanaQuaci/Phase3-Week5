@@ -44,7 +44,8 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-window -gpu swiftshader_indirect
           script: |
-            echo ">>> Emulator ready, starting Appium server..."
+            echo ">>> Emulator ready, starting Appium..."
+            wait-for-boot
             appium -p 4723 --base-path /wd/hub &
             sleep 15
             echo ">>> Running Maven tests..."
