@@ -6,12 +6,18 @@ import com.projects.pages.ProductsPage;
 import com.projects.pages.CartPage;
 import com.projects.pages.CheckoutPage;
 import com.projects.testdata.LoginTestData;
+import io.qameta.allure.*;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+@Epic("Swag Labs Mobile Tests")
+@Feature("End-to-End Purchase Flow")
 public class ProductsFlowTest extends BaseTest {
 
     @Test
+    @Story("Complete Purchase Flow")
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Verify the complete end-to-end flow: login, add product to cart, checkout, and confirm successful order")
     public void endToEndPurchaseFlow() {
         // Step 1: Login and land on Products page
         ProductsPage productsPage = new LoginPage(driver)

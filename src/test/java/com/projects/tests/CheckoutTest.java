@@ -6,12 +6,18 @@ import com.projects.pages.ProductsPage;
 import com.projects.pages.CartPage;
 import com.projects.pages.CheckoutPage;
 import com.projects.testdata.LoginTestData;
+import io.qameta.allure.*;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+@Epic("Swag Labs Mobile Tests")
+@Feature("Checkout Functionality")
 public class CheckoutTest extends BaseTest {
 
     @Test
+    @Story("Successful Checkout")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("Verify that a valid checkout flow completes the order successfully")
     public void validCheckoutShouldCompleteOrder() {
         LoginPage loginPage = new LoginPage(driver);
         ProductsPage productsPage = loginPage.login(LoginTestData.VALID_USERNAME, LoginTestData.VALID_PASSWORD);
@@ -31,6 +37,9 @@ public class CheckoutTest extends BaseTest {
     }
 
     @Test
+    @Story("Checkout with Empty Fields")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Verify that leaving required checkout fields empty displays an error message")
     public void emptyFieldsShouldShowError() {
         LoginPage loginPage = new LoginPage(driver);
         ProductsPage productsPage = loginPage.login(LoginTestData.VALID_USERNAME, LoginTestData.VALID_PASSWORD);
@@ -50,6 +59,9 @@ public class CheckoutTest extends BaseTest {
     }
 
     @Test
+    @Story("Checkout Confirmation Message")
+    @Severity(SeverityLevel.MINOR)
+    @Description("Verify that the correct confirmation message is displayed after successful checkout")
     public void validCheckoutShouldShowCorrectMessage() {
         LoginPage loginPage = new LoginPage(driver);
         ProductsPage productsPage = loginPage.login(LoginTestData.VALID_USERNAME, LoginTestData.VALID_PASSWORD);

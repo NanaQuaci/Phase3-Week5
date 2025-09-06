@@ -1,12 +1,15 @@
 name: Run Android Appium Tests with Allure
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
 env:
   APP_PATH: ./src/test/resources/apps/Android.SauceLabs.Mobile.Sample.app.2.7.1.apk
   DEVICE_NAME: pixel_6a
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -14,64 +17,56 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: 21
           distribution: temurin
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
+
       - name: Install Appium and Allure
         run: |
           npm install -g appium@2.0.0 appium-doctor allure-commandline --save-dev
           appium driver install uiautomator2
+
       - name: Start Android Emulator and Run Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 33
+          api-level: 30               # ✅ more stable than 33 on CI
           target: google_apis
           arch: x86_64
           force-avd-creation: true
-          emulator-options: -no-window -gpu swiftshader_indirect
+          emulator-options: -no-window -no-audio -gpu swiftshader_indirect
+          disable-animations: true
+          emulator-timeout: 600       # ✅ gives emulator up to 10 min to boot
+          avd-cache: true             # ✅ speeds up boot after first run
           script: |
-            echo ">>> Emulator starting, waiting for boot..."
-            wait-for-boot
-            echo ">>> Restarting ADB to fix connection issues..."
-            adb kill-server
-            sleep 2
-            adb start-server
-            sleep 5
-            echo ">>> Waiting for device to be fully ready..."
-            timeout 300 adb wait-for-device
-            echo ">>> Device connected, checking boot completion..."
-            adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 2; echo "Still booting..."; done'
-            echo ">>> Disabling animations for test stability..."
-            adb shell settings put global window_animation_scale 0
-            adb shell settings put global transition_animation_scale 0 
-            adb shell settings put global animator_duration_scale 0
-            echo ">>> Unlocking device screen..."
-            adb shell input keyevent 82
             echo ">>> Starting Appium server..."
             appium -p 4723 --base-path /wd/hub &
             sleep 15
-            echo ">>> Running tests..."
+            echo ">>> Running Maven tests..."
             mkdir -p allure-results target/surefire-reports
-            chmod 777 allure-results target/surefire-reports
             mvn clean test
+
       - name: Upload Allure results as artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
           path: allure-results
+
       - name: Upload JUnit reports as artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: junit-reports
           path: target/surefire-reports
+
   deploy-allure-report:
     needs: test
     runs-on: ubuntu-latest
@@ -79,26 +74,31 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Download Allure results
         uses: actions/download-artifact@v4
         with:
           name: allure-results
           path: allure-results
+
       - name: Install Allure CLI
         run: |
           wget https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.tgz
           tar -xzf allure-2.27.0.tgz
           sudo mv allure-2.27.0 /opt/allure
           sudo ln -s /opt/allure/bin/allure /usr/local/bin/allure
+
       - name: Generate Allure report
         run: |
           allure generate allure-results --clean -o allure-report
+
       - name: Deploy Allure report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: allure-report
           publish_branch: gh-pages
+
   notify-slack:
     needs: [ test, deploy-allure-report ]
     runs-on: ubuntu-latest

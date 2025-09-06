@@ -7,10 +7,10 @@ import org.openqa.selenium.WebElement;
 
 public class LoginPage extends BasePage {
 
-    @AndroidFindBy(xpath = "//android.widget.EditText[@content-desc='test-Username']")
+    @AndroidFindBy(accessibility = "test-Username")
     private WebElement usernameField;
 
-    @AndroidFindBy(xpath = "//android.widget.EditText[@content-desc='test-Password']")
+    @AndroidFindBy(accessibility = "test-Password")
     private WebElement passwordField;
 
     @AndroidFindBy(xpath = "//android.widget.TextView[@text='LOGIN']")
