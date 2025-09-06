@@ -47,23 +47,26 @@ jobs:
           script: |
             echo ">>> Starting Appium server..."
             appium -p 4723 --base-path /wd/hub &
-            
-            # Wait for Appium to be ready
+
             echo ">>> Waiting for Appium server..."
+            # Use bash
+            bash -c '
             timeout=30
             while ! nc -z localhost 4723; do
               echo "Appium not ready yet..."
               sleep 1
-              ((timeout--))
+              timeout=$((timeout - 1))
               if [ $timeout -le 0 ]; then
                 echo "Appium did not start!"
                 exit 1
               fi
             done
             echo ">>> Appium is ready, running Maven tests..."
-            
+            '
+
             mkdir -p allure-results target/surefire-reports
             mvn clean test -Dsurefire.suiteXmlFiles=testng.xml
+      
 
       - name: Upload Allure results as artifact
         if: always()
