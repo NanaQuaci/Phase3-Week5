@@ -16,8 +16,8 @@ public class MenuTest extends BaseTest {
         ProductsPage productsPage = loginPage.login(LoginTestData.VALID_USERNAME, LoginTestData.VALID_PASSWORD);
 
         MenuPage menuPage = productsPage.openMenu();
-        Assert.assertTrue(menuPage.isOnPage(), "❌ Menu did not open");
-        Assert.assertTrue(menuPage.hasLogoutOption(), "❌ Logout option not found in menu");
+        Assert.assertTrue(menuPage.isOnPage(), "✅ Menu page opened");
+        Assert.assertTrue(menuPage.hasLogoutOption(), "✅ Logout option found in menu");
     }
 
     @Test
@@ -28,6 +28,6 @@ public class MenuTest extends BaseTest {
         MenuPage menuPage = productsPage.openMenu();
         LoginPage returnedLoginPage = menuPage.logout();
 
-        Assert.assertTrue(returnedLoginPage.isOnPage(), "❌ Did not return to login page after logout");
+        Assert.assertTrue(returnedLoginPage.isOnPage(), "✅ Returned to login page after logout");
     }
 }

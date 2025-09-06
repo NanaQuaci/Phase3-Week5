@@ -7,16 +7,16 @@ import org.openqa.selenium.WebElement;
 
 public class CartPage extends BasePage {
 
-    @AndroidFindBy(xpath = "//android.widget.TextView[@text='Your Cart']")
+    @AndroidFindBy(xpath = "//android.widget.TextView[@text='YOUR CART']")
     private WebElement cartTitle;
 
     @AndroidFindBy(xpath = "//android.widget.TextView[@text='Sauce Labs Backpack']")
     private WebElement cartItemBackpack;
 
-    @AndroidFindBy(xpath = "//android.widget.Button[@content-desc='Remove']")
+    @AndroidFindBy(xpath = "//android.widget.TextView[@text='REMOVE']")
     private WebElement removeBackpackBtn;
 
-    @AndroidFindBy(xpath = "//android.widget.Button[@content-desc='Checkout']")
+    @AndroidFindBy(xpath = "//android.widget.TextView[@text='CHECKOUT']")
     private WebElement checkoutBtn;
 
     public CartPage(AndroidDriver driver) {
@@ -50,6 +50,7 @@ public class CartPage extends BasePage {
     }
 
     public CheckoutPage proceedToCheckout() {
+        scrollToText("CHECKOUT");
         click(checkoutBtn);
         return new CheckoutPage(driver);
     }

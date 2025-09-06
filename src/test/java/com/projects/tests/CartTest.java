@@ -18,8 +18,8 @@ public class CartTest extends BaseTest {
         productsPage.addBackpackToCart();
         CartPage cartPage = productsPage.goToCart();
 
-        Assert.assertTrue(cartPage.isOnPage(), "❌ Cart page did not load");
-        Assert.assertTrue(cartPage.isBackpackInCart(), "❌ Backpack not found in cart");
+        Assert.assertTrue(cartPage.isOnPage(), "✅ Cart page loads");
+        Assert.assertTrue(cartPage.isBackpackInCart(), "✅ Backpack found in cart");
     }
 
     @Test
@@ -31,6 +31,6 @@ public class CartTest extends BaseTest {
         CartPage cartPage = productsPage.goToCart();
         cartPage.removeBackpackFromCart();
 
-        Assert.assertTrue(cartPage.isCartEmpty(), "❌ Cart should be empty after removing item");
+        Assert.assertTrue(cartPage.isCartEmpty(), "✅ Cart should be empty after removing item");
     }
 }

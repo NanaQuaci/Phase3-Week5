@@ -7,19 +7,19 @@ import org.openqa.selenium.WebElement;
 
 public class ProductsPage extends BasePage {
 
-    @AndroidFindBy(xpath = "//android.widget.TextView[@text='Products']")
+    @AndroidFindBy(xpath = "//android.widget.TextView[@text='PRODUCTS']")
     private WebElement title;
 
     @AndroidFindBy(xpath = "//android.widget.TextView[@text='Sauce Labs Backpack']")
     private WebElement productBackpack;
 
-    @AndroidFindBy(xpath = "//android.widget.Button[@content-desc='Add To Cart']")
+    @AndroidFindBy(xpath = "(//android.widget.TextView[@text='ADD TO CART'])[1]")
     private WebElement addToCartBtn;
 
-    @AndroidFindBy(accessibility = "Cart")
+    @AndroidFindBy(xpath = "//android.view.ViewGroup[@content-desc=\"test-Cart\"]/android.view.ViewGroup/android.widget.ImageView")
     private WebElement cartBtn;
 
-    @AndroidFindBy(xpath = "//android.widget.TextView[@content-desc='test-Cart badge']")
+    @AndroidFindBy(xpath = "//*[@content-desc='test-Cart badge']")
     private WebElement cartBadge;
 
     @AndroidFindBy(accessibility = "test-Menu")
@@ -45,6 +45,7 @@ public class ProductsPage extends BasePage {
 
     public int getCartBadgeCount() {
         try {
+            waitForVisibility(cartBadge);
             return Integer.parseInt(cartBadge.getText());
         } catch (Exception e) {
             return 0; // if badge is not visible

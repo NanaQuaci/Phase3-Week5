@@ -27,7 +27,7 @@ public class CheckoutTest extends BaseTest {
         );
 
         checkoutPage.completeCheckout();
-        Assert.assertTrue(checkoutPage.isOrderSuccessful(), "❌ Order was not successful");
+        Assert.assertTrue(checkoutPage.isOrderSuccessful(), "✅ Order was successful");
     }
 
     @Test
@@ -45,7 +45,26 @@ public class CheckoutTest extends BaseTest {
                 LoginTestData.EMPTY_POSTAL_CODE
         );
 
-        Assert.assertTrue(checkoutPage.getErrorMessage().contains("Error"),
-                "❌ Expected error message for empty fields");
+        Assert.assertTrue(checkoutPage.getErrorMessage().contains("required"),
+                "Expected error message for empty fields");
+    }
+
+    @Test
+    public void validCheckoutShouldShowCorrectMessage() {
+        LoginPage loginPage = new LoginPage(driver);
+        ProductsPage productsPage = loginPage.login(LoginTestData.VALID_USERNAME, LoginTestData.VALID_PASSWORD);
+
+        productsPage.addBackpackToCart();
+        CartPage cartPage = productsPage.goToCart();
+        CheckoutPage checkoutPage = cartPage.proceedToCheckout();
+
+        checkoutPage.fillCustomerDetails(
+                LoginTestData.VALID_FIRST_NAME,
+                LoginTestData.VALID_LAST_NAME,
+                LoginTestData.VALID_POSTAL_CODE
+        );
+
+        checkoutPage.completeCheckout();
+        Assert.assertTrue(checkoutPage.isMessageCorrect(), "✅ Order was successful");
     }
 }

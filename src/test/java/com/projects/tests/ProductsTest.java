@@ -14,8 +14,8 @@ public class ProductsTest extends BaseTest {
         LoginPage loginPage = new LoginPage(driver);
         ProductsPage productsPage = loginPage.login(LoginTestData.VALID_USERNAME, LoginTestData.VALID_PASSWORD);
 
-        Assert.assertTrue(productsPage.isOnPage(), "❌ Products page did not load");
-        Assert.assertTrue(productsPage.isBackpackVisible(), "❌ Backpack product not visible");
+        Assert.assertTrue(productsPage.isOnPage(), "✅ Products page was loaded");
+        Assert.assertTrue(productsPage.isBackpackVisible(), "✅ Backpack product was visible");
     }
 
     @Test

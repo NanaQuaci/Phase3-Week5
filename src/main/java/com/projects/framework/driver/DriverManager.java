@@ -20,7 +20,7 @@ public class DriverManager {
         try {
             driver = new AndroidDriver(URI.create(Config.get("APPIUM_SERVER")).toURL(), opts);
         } catch (Exception e) { throw new RuntimeException("Failed to connect to Appium server", e); }
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(2));
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
         TL.set(driver);
     }
 

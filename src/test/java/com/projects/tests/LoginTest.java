@@ -30,7 +30,7 @@ public class LoginTest extends BaseTest {
     public void lockedOutUserShouldNotLogin() {
         LoginPage login = new LoginPage(driver);
         login.login(LoginTestData.INVALID_USERNAME, LoginTestData.VALID_PASSWORD);
-        Assert.assertTrue(login.getErrorMessage().contains("Sorry, this user has been locked out"),
+        Assert.assertTrue(login.getErrorMessage().contains("Username and password do not match any user in this service"),
                 "Expected locked-out error message.");
     }
 
