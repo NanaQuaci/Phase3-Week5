@@ -45,32 +45,24 @@ jobs:
           disable-animations: true
           emulator-boot-timeout: 900
           script: |
-            #!/bin/bash
-            set -e
-
             echo ">>> Starting Appium server..."
             appium -p 4723 --base-path /wd/hub &
-            APPIUM_PID=$!
-
+            
             echo ">>> Waiting for Appium server..."
-            TIMEOUT=30
+            timeout=30
             while ! nc -z localhost 4723; do
               echo "Appium not ready yet..."
               sleep 1
-              TIMEOUT=$((TIMEOUT-1))
-              if [ $TIMEOUT -le 0 ]; then
-                echo "Appium did not start in time!"
-                kill $APPIUM_PID
+              timeout=$((timeout - 1))
+              if [ $timeout -le 0 ]; then
+                echo "Appium did not start!"
                 exit 1
               fi
             done
-
-            echo ">>> Appium ready, running Maven tests..."
+            
+            echo ">>> Appium is ready, running Maven tests..."
             mkdir -p allure-results target/surefire-reports
             mvn clean test -Dsurefire.suiteXmlFiles=testng.xml
-
-            # Kill Appium after tests
-            kill $APPIUM_PID
 
       - name: Upload Allure results as artifact
         if: always()
