@@ -47,10 +47,23 @@ jobs:
           script: |
             echo ">>> Starting Appium server..."
             appium -p 4723 --base-path /wd/hub &
-            sleep 15
-            echo ">>> Running Maven tests..."
+            
+            # Wait for Appium to be ready
+            echo ">>> Waiting for Appium server..."
+            timeout=30
+            while ! nc -z localhost 4723; do
+              echo "Appium not ready yet..."
+              sleep 1
+              ((timeout--))
+              if [ $timeout -le 0 ]; then
+                echo "Appium did not start!"
+                exit 1
+              fi
+            done
+            echo ">>> Appium is ready, running Maven tests..."
+            
             mkdir -p allure-results target/surefire-reports
-            mvn clean test
+            mvn clean test -Dsurefire.suiteXmlFiles=testng.xml
 
       - name: Upload Allure results as artifact
         if: always()
@@ -111,5 +124,5 @@ jobs:
             EMOJI="✅"
           fi
           curl -X POST -H 'Content-type: application/json' --data "{
-            \"text\": \"${EMOJI} Android Appium CI/CD finished with status: *$STATUS*\nRepo: $GITHUB_REPOSITORY\nCommit: <https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA|$GITHUB_SHA>\nAllure Report: https://$GITHUB_REPOSITORY_OWNER.github.io/${{ github.event.repository.name }}\"
+            \"text\": \"${EMOJI} Android Appium CI/CD finished with status: *$STATUS*\nRepo: $GITHUB_REPOSITORY\nCommit: <https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA|$GITHUB_SHA>\nAllure Report: https://$GITHUB_REPOSITORY_OWNER.github.io/${{ github.event.repository.name }}\" 
           }" ${{ secrets.SLACK_WEBHOOK_URL }}
