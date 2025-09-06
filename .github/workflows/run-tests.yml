@@ -43,7 +43,7 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none -no-window
           disable-animations: true
-          emulator-boot-timeout: 1200
+          emulator-boot-timeout: 900
           script: |
             echo ">>> Starting Appium server..."
             appium -p 4723 --base-path /wd/hub &
