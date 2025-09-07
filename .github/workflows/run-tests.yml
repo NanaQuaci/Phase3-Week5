@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+
+permissions:
+  contents: write
+
 env:
   APP_PATH: ./src/test/resources/apps/Android.SauceLabs.Mobile.Sample.app.2.7.1.apk
   DEVICE_NAME: pixel_6a
@@ -142,7 +146,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: allure-report
           publish_branch: gh-pages
-          force_orphan: true
 
   notify-slack:
     needs: [ test, deploy-allure-report ]
