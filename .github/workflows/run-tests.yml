@@ -78,7 +78,7 @@ jobs:
           done
 
           echo ">>> Appium is listening. Giving extra 10s for full startup..."
-          sleep 10
+          sleep 30
           
           echo ">>> Appium is ready, checking connected devices..."
           adb devices
