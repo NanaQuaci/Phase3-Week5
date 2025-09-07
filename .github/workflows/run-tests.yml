@@ -45,8 +45,11 @@ jobs:
           disable-animations: true
           emulator-boot-timeout: 900
           script: |
+            echo ">>> Installing netcat for port checks..."
+            sudo apt-get update && sudo apt-get install -y netcat
+            
             echo ">>> Starting Appium server..."
-            appium -p 4723 --base-path /wd/hub &
+            appium -p 4723 --base-path /wd/hub > appium.log 2>&1 &
             
             echo ">>> Waiting for Appium server..."
             timeout=30
@@ -62,7 +65,13 @@ jobs:
             
             echo ">>> Appium is ready, running Maven tests..."
             mkdir -p allure-results target/surefire-reports
-            mvn clean test -Dsurefire.suiteXmlFiles=testng.xml
+            
+            # Debug: show which tests Maven detects
+            mvn -q -Dtest=* test -Dsurefire.suiteXmlFiles=testng.xml || {
+              echo ">>> Maven tests failed, showing surefire reports"
+              ls -R target/surefire-reports || true
+              exit 1
+            }
 
       - name: Upload Allure results as artifact
         if: always()
