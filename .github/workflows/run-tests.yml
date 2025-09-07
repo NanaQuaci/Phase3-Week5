@@ -61,7 +61,7 @@ jobs:
       - name: Run Appium tests
         run: |
           echo ">>> Installing netcat for port checks..."
-          sudo apt-get update && sudo apt-get install -y netcat
+          sudo apt-get update && sudo apt-get install -y netcat-openbsd
 
           echo ">>> Starting Appium server..."
           appium -p 4723 --base-path /wd/hub > appium.log 2>&1 &
