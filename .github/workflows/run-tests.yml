@@ -54,13 +54,6 @@ jobs:
             sleep 15
 
 
-      - name: Start Appium Server
-        run: |
-          npm install -g appium@next
-          appium driver install uiautomator2
-          nohup appium --base-path / --address 127.0.0.1 --port 4723 > appium.log 2>&1 &
-          sleep 10
-
       # ✅ Step 2: Run Appium tests while emulator is alive
       - name: Run Appium tests
         run: |
