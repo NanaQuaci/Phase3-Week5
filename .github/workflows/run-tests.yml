@@ -47,31 +47,43 @@ jobs:
           script: |
             echo ">>> Installing netcat for port checks..."
             sudo apt-get update && sudo apt-get install -y netcat
-            
+
             echo ">>> Starting Appium server..."
             appium -p 4723 --base-path /wd/hub > appium.log 2>&1 &
-            
+            APPIUM_PID=$!
+
             echo ">>> Waiting for Appium server..."
-            timeout=30
+            TIMEOUT=60
             while ! nc -z localhost 4723; do
               echo "Appium not ready yet..."
               sleep 1
-              timeout=$((timeout - 1))
-              if [ $timeout -le 0 ]; then
+              TIMEOUT=$((TIMEOUT - 1))
+              if [ $TIMEOUT -le 0 ]; then
                 echo "Appium did not start!"
+                kill $APPIUM_PID || true
                 exit 1
               fi
             done
-            
-            echo ">>> Appium is ready, running Maven tests..."
+
+            echo ">>> Appium is ready, checking connected devices..."
+            adb devices
+
+            echo ">>> Running Maven tests..."
             mkdir -p allure-results target/surefire-reports
-            
-            # Debug: show which tests Maven detects
-            mvn -q -Dtest=* test -Dsurefire.suiteXmlFiles=testng.xml || {
-              echo ">>> Maven tests failed, showing surefire reports"
+
+            # Run tests and capture failure without killing emulator prematurely
+            mvn clean test -Dsurefire.suiteXmlFiles=testng.xml || TEST_FAILED=true
+
+            echo ">>> Maven tests completed, shutting down Appium..."
+            kill $APPIUM_PID || true
+
+            # If Maven failed, surface error so CI reports failure
+            if [ "$TEST_FAILED" = true ]; then
+              echo ">>> Tests failed, showing surefire reports..."
               ls -R target/surefire-reports || true
               exit 1
-            }
+            fi
+      
 
       - name: Upload Allure results as artifact
         if: always()
