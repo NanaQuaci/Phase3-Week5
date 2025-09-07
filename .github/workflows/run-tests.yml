@@ -46,7 +46,7 @@ jobs:
           emulator-boot-timeout: 900
           emulator-options: -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none -no-window
           script: |
-          # Wait for emulator to be fully ready
+            # Wait for emulator to be fully ready
             sleep 15
             # Manually disable animations with retries
             for i in {1..3}; do
